@@ -43,13 +43,13 @@ class Bikes extends Resource
         return [
             ID::make()->sortable(),
 
-            Text::make('Brand')->sortable(),
+            Text::make('Bike Number', 'bike_number')
+            ->sortable()
+            ->showWhenPeeking(),
 
-            Text::make('Model')->sortable(),
-
-            Text::make('latlong')->sortable(),
-
-            Boolean::make('needs_maintenance')->sortable(),
+            Boolean::make('needs_maintenance')
+                ->sortable()
+                ->showWhenPeeking(),
         ];
     }
 

@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bikes', function (Blueprint $table) {
-            $table->id();
-            $table->string('brand');
-            $table->string('model');
-            $table->boolean('needs_maintenance')->default(false);
-            $table->string('latlong');
-            $table->timestamps();
+        Schema::table('assistance_requests', function (Blueprint $table) {
+            $table->unsignedBigInteger('location_id')->nullable()->after('bike_id');
         });
     }
 
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('assistance_requests', function (Blueprint $table) {
+            $table->dropColumn('location_id');
+        });
     }
 };

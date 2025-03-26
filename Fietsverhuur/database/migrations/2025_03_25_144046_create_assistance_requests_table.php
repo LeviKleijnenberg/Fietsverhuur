@@ -17,7 +17,7 @@ class CreateAssistanceRequestsTable extends Migration
             $table->id();  // auto-incrementing primary key
             $table->string('latlong')->nullable();  // Latlong field (string)
             $table->text('description')->nullable();  // description field (text)
-            $table->json('photos')->nullable();  // photos field (json)
+            $table->text('photos')->nullable();  // photos field (json)
             $table->unsignedBigInteger('bike_id')->nullable();  // bike_id field (foreign key reference)
             $table->timestamps();  // created_at and updated_at
 

@@ -3,19 +3,19 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\Date;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Nette\Utils\Image;
 
-class Locations extends Resource
+class AssistanceRequestPhoto extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
-     * @var class-string<\App\Models\Location>
+     * @var class-string<\App\Models\AssistanceRequestPhoto>
      */
-    public static $model = \App\Models\Location::class;
+    public static $model = \App\Models\AssistanceRequestPhoto::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -43,32 +43,22 @@ class Locations extends Resource
         return [
             ID::make()->sortable(),
 
-            BelongsTo::make('Company', 'company', Company::class)  // 'company' is the relationship method in the AssistanceRequest model
-            ->sortable()
-                ->displayUsing(function ($company) {
-                    return $company ? $company->name : ''; // Display the company name
+            \Laravel\Nova\Fields\Image::make('photo')
+                ->disk('public') // Specify the disk where the image is stored
+                ->path('assistance_requests') // Path within the disk (No leading '/')
+                ->rules('image', 'mimes:jpeg,png,gif,webp,jpg')
+
+                // Show image in the index page
+                ->thumbnail(function ($value) {
+                    return $value ? asset('storage/' . $value) : null;
                 })
-                ->showWhenPeeking(),
 
-            Text::make('Name', 'location_name')
-            ->sortable()
-            ->required()
-            ->showWhenPeeking(),
+                // Show image in the details page
+                ->preview(function ($value) {
+                    return $value ? asset('storage/' . $value) : null;
+                }),
 
-            Text::make('Address', 'location_address')
-            ->sortable()
-            ->required()
-                ->showWhenPeeking(),
-
-            Text::make('Phone', 'location_phone')
-            ->sortable()
-                ->showWhenPeeking(),
-
-            Text::make('Email', 'location_email')
-            ->sortable()
-                ->showWhenPeeking(),
-
-
+            Date::make('Uploaded On', 'created_at')
 
         ];
     }
