@@ -3,8 +3,11 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Laravel\Nova\Exceptions\HelperNotSupported;
 use Laravel\Nova\Fields\Date;
+use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Fields\ID;
+use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Nette\Utils\Image;
 
@@ -37,25 +40,30 @@ class AssistanceRequestPhoto extends Resource
      * Get the fields displayed by the resource.
      *
      * @return array<int, \Laravel\Nova\Fields\Field>
+     * @throws HelperNotSupported
      */
     public function fields(NovaRequest $request): array
     {
         return [
             ID::make()->sortable(),
 
-            \Laravel\Nova\Fields\Image::make('photo')
-                ->disk('public') // Specify the disk where the image is stored
-                ->path('assistance_requests') // Path within the disk (No leading '/')
-                ->rules('image', 'mimes:jpeg,png,gif,webp,jpg')
+            Text::make('Image Preview')
+                ->onlyOnDetail()  // Only show it in the detail view
+                ->asHtml()  // Tell Nova to render this as HTML
+                ->displayUsing(function () {
+                    // Log the base64 string to check if it is being fetched properly from the database
+                    \Log::info('Base64 Image Data: ' . $this->image);  // Log the base64 string
 
-                // Show image in the index page
-                ->thumbnail(function ($value) {
-                    return $value ? asset('storage/' . $value) : null;
-                })
+                    if (empty($this->image)) {
+                        \Log::warning('No base64 image data found.');
+                        return 'No image available';
+                    }
 
-                // Show image in the details page
-                ->preview(function ($value) {
-                    return $value ? asset('storage/' . $value) : null;
+                    // Determine image type from the base64 string (you can use a better method depending on your needs)
+                    $mimeType = 'image/png'; // Default to PNG, change to match your data
+
+                    // Prepare the image tag with the base64 data
+                    return "<img style='display:block; width:100px; height:100px;' src='data:{$mimeType};base64, {$this->image}' />";
                 }),
 
             Date::make('Uploaded On', 'created_at')

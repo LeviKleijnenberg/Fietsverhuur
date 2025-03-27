@@ -9,7 +9,8 @@ class AssistanceRequestPhoto extends Model
     protected $table = 'assistance_request_photos';
     protected $fillable = [
         'id',
-        'photo',
+        'image',
+        'assistance_request_id',
     ];
 
     public function assistanceRequest()

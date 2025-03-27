@@ -9,10 +9,11 @@ class AssistanceRequest extends Model
     protected $table = 'assistance_requests';
     protected $fillable = [
         'id',
-        'latlong',
-        'description',
-        'photos',
+        'problem',
         'bike_id',
+        'location_id',
+        'bike_number', // Add bike_number to fillable if needed for direct insertion
+        'assistance_request_photos_id',
         'map',
     ];
 
@@ -20,7 +21,7 @@ class AssistanceRequest extends Model
     {
         return $this->belongsTo(Bikes::class, 'bike_id');
     }
-    public function photos()
+    public function images()
     {
         return $this->hasMany(AssistanceRequestPhoto::class);
     }

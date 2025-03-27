@@ -9,9 +9,12 @@ class Bikes extends Model
     protected $table = 'bikes';
     protected $fillable = [
         'id',
-        'brand',
-        'model',
         'needs_maintenance',
-        'latlong',
+        'bike_number',
     ];
+
+    public function assistanceRequests()
+    {
+        return $this->hasMany(AssistanceRequest::class); // Define the inverse relationship
+    }
 }

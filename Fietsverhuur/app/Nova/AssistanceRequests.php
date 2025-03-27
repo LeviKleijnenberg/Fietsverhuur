@@ -2,6 +2,7 @@
 
 namespace App\Nova;
 
+use Laravel\Nova\Fields\Date;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Nova\Fields\BelongsTo;
@@ -48,7 +49,7 @@ class AssistanceRequests extends Resource
         return [
             ID::make()->sortable(),
 
-            Text::make('description')
+            Text::make('problem')
             ->sortable(),
 
             BelongsTo::make('Bike number', 'bike', Bikes::class)
@@ -68,6 +69,10 @@ class AssistanceRequests extends Resource
                 ->displayUsing(function ($photo) {
                     return $photo ? $photo->id : 'No Photo';
                 }),
+
+        Date::make('Date', 'created_at')
+            ->sortable(),
+
 
             Text::make('Current Location')
                 ->onlyOnDetail()
