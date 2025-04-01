@@ -10,7 +10,7 @@ class AssistanceRequest extends Model
     protected $fillable = [
         'id',
         'problem',
-        'bike_id',
+        'bike_number',
         'location_id',
         'bike_number', // Add bike_number to fillable if needed for direct insertion
         'assistance_request_photos_id',
@@ -19,7 +19,7 @@ class AssistanceRequest extends Model
 
     public function bike(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Bikes::class, 'bike_id');
+        return $this->belongsTo(Bikes::class);
     }
     public function images()
     {
@@ -30,7 +30,5 @@ class AssistanceRequest extends Model
     {
         return $this->belongsTo(Location::class, 'location_id');
     }
-
-
 
 }

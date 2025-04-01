@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Location;
 use App\Models\User;
+use App\Nova\OpeningTime;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Fortify\Features;
 use Laravel\Nova\Nova;
@@ -33,6 +35,8 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
             ])
             ->register();
     }
+
+
 
     /**
      * Register the Nova routes.

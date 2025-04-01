@@ -12,7 +12,6 @@ class Bikes extends Model
         'needs_maintenance',
         'bike_number',
     ];
-
     public function assistanceRequests()
     {
         return $this->hasMany(AssistanceRequest::class); // Define the inverse relationship

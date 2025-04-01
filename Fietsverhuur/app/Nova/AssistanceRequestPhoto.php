@@ -48,23 +48,25 @@ class AssistanceRequestPhoto extends Resource
             ID::make()->sortable(),
 
             Text::make('Image Preview')
-                ->onlyOnDetail()  // Only show it in the detail view
-                ->asHtml()  // Tell Nova to render this as HTML
+                ->asHtml()
                 ->displayUsing(function () {
-                    // Log the base64 string to check if it is being fetched properly from the database
-                    \Log::info('Base64 Image Data: ' . $this->image);  // Log the base64 string
-
                     if (empty($this->image)) {
-                        \Log::warning('No base64 image data found.');
                         return 'No image available';
                     }
 
-                    // Determine image type from the base64 string (you can use a better method depending on your needs)
-                    $mimeType = 'image/png'; // Default to PNG, change to match your data
+                    // Ensure base64 is clean
+                    $cleanBase64 = trim($this->image);
 
-                    // Prepare the image tag with the base64 data
-                    return "<img style='display:block; width:100px; height:100px;' src='data:{$mimeType};base64, {$this->image}' />";
+                    // Manually set MIME type (You can improve this by detecting dynamically)
+                    $mimeType = 'image/jpeg'; // Change based on your data
+
+                    // Log the full base64 string for debugging
+                    \Log::info('Final Base64 Image:', [$cleanBase64]);
+
+                    // Return the image HTML
+                    return "<img src='data:{$mimeType};base64,{$cleanBase64}' style='display:block; width:100px; height:100px; object-fit:cover;' />";
                 }),
+
 
             Date::make('Uploaded On', 'created_at')
 

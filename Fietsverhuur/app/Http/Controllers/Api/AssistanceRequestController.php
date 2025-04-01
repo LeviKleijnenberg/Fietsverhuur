@@ -16,80 +16,72 @@ class AssistanceRequestController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request
-        $validated = $request->validate([
-            'latitude'      => 'required|numeric',
-            'longitude'     => 'required|numeric',
-            'problem'       => 'required|string',
-            'bike_number'   => 'required|string',
-            'location_id'   => 'required|integer|exists:locations,id',
-            'image'         => 'nullable|string',
-        ]);
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'latitude'      => 'required|numeric',
+                'longitude'     => 'required|numeric',
+                'problem'       => 'required|string',
+                'bike_number'   => 'required|string',
+                'location_id'   => 'required|integer|exists:locations,id',
+                'images'        => 'nullable|array',
+                'images.*.id'    => 'nullable|integer',
+                'images.*.image' => 'nullable|string',
+            ]);
 
-        // Create map data
-        $mapData = [
-            'latlng' => [
-                'lat' => $validated['latitude'],
-                'lng' => $validated['longitude'],
-            ]
-        ];
+            // Create map data
+            $mapData = [
+                'latlng' => [
+                    'lat' => $validated['latitude'],
+                    'lng' => $validated['longitude'],
+                ]
+            ];
 
-        // Store the assistance request
-        $assistanceRequest = AssistanceRequest::create([
-            'latitude'    => $validated['latitude'],
-            'longitude'   => $validated['longitude'],
-            'problem'     => $validated['problem'],
-            'bike_number' => $validated['bike_number'],
-            'location_id' => $validated['location_id'],
-            'map'         => json_encode($mapData),
-        ]);
+            // Store the assistance request
+            $assistanceRequest = AssistanceRequest::create([
+                'latitude'    => $validated['latitude'],
+                'longitude'   => $validated['longitude'],
+                'problem'     => $validated['problem'],
+                'bike_number' => $validated['bike_number'],
+                'location_id' => $validated['location_id'],
+                'map'         => json_encode($mapData),
+            ]);
 
-        Log::info('Assistance request created with ID: ' . $assistanceRequest->id);
+            Log::info('Assistance request created with ID: ' . $assistanceRequest->id);
 
-        // Check if image is present
-        if (!empty($validated['image'])) {
-            try {
-                Log::debug("Received base64 image data.");
+            // Handle and store images
+            if (!empty($validated['images'])) {
+                foreach ($validated['images'] as $imageData) {
+                    try {
+                        $image = $imageData['image'];
 
-                $imageData = $validated['image'];
 
-                // If it has the data:image/... header
-                if (preg_match('/^data:image\/(\w+);base64,/', $imageData)) {
-                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
-                } else {
-                    Log::debug("Base64 image has no header, assuming raw base64 string.");
+                        // Save the image as raw binary in the database
+                        $photo = AssistanceRequestPhoto::create([
+                            'assistance_request_id' => $assistanceRequest->id,
+                            'image' => $image,  // Store as raw binary data
+                        ]);
+
+                        Log::info("Image saved to database with ID: " . $photo->id);
+
+                    } catch (\Exception $e) {
+                        Log::error("Error saving image: " . $e->getMessage());
+                    }
                 }
-
-                // Decode the base64 string
-                $imageData = base64_decode($imageData);
-
-                if ($imageData === false) {
-                    Log::error("Base64 decode failed.");
-                    throw new \Exception("Base64 decode failed.");
-                }
-
-                // Save base64 image string directly (as you requested)
-                $photo = AssistanceRequestPhoto::create([
-                    'assistance_request_id' => $assistanceRequest->id,
-                    'image' => $validated['image']
-                ]);
-
-                $assistanceRequest->update([
-                    'assistance_request_photos_id' => $photo->id
-                ]);
-
-                Log::debug("Base64 image saved to database with ID: " . $photo->id);
-
-            } catch (\Exception $e) {
-                Log::error("Error processing base64 image: " . $e->getMessage());
             }
+
+            // Return success response with loaded images
+            return response()->json([
+                'message' => 'Assistance request created successfully!',
+                'data' => $assistanceRequest->load('images')  // Load the images relationship
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
         }
-
-        Log::debug($request->all());
-
-        return response()->json([
-            'message' => 'Assistance request created successfully!',
-            'data' => $assistanceRequest->load('images')
-        ], 201);
     }
+
 }

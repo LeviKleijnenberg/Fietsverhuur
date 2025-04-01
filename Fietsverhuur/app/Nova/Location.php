@@ -1,75 +1,49 @@
 <?php
-
 namespace App\Nova;
 
-use Laravel\Nova\Fields\Date;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Laravel\Nova\Fields\BelongsTo;
-use Laravel\Nova\Fields\File;
-use Laravel\Nova\Fields\HasMany;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Whitecube\NovaGoogleMaps\GoogleMaps;
 
-class AssistanceRequests extends Resource
+class Location extends Resource
 {
-    /**
-     * The model the resource corresponds to.
-     *
-     * @var class-string<\App\Models\AssistanceRequest>
-     */
-    public static $model = \App\Models\AssistanceRequest::class;
+    public static $model = \App\Models\Location::class;
 
-    /**
-     * The single value that should be used to represent the resource when being displayed.
-     *
-     * @var string
-     */
-    public static $title = 'id';
+    public static $title = 'location_name';
 
-    /**
-     * The columns that should be searched.
-     *
-     * @var array
-     */
-    public static $search = [
-        'id',
-    ];
+    public static $search = ['id', 'location_name'];
 
-    /**
-     * Get the fields displayed by the resource.
-     *
-     * @return array<int, \Laravel\Nova\Fields\Field>
-     */
     public function fields(NovaRequest $request): array
     {
         return [
             ID::make()->sortable(),
 
-            Text::make('problem')
-            ->sortable(),
-
-            BelongsTo::make('Company Address', 'location', Location::class)
+            Text::make('Name', 'location_name')
                 ->sortable()
-                ->displayUsing(function ($location) {
-                    return $location ? $location->location_address : 'No Address Available';
-                }),
+                ->required(),
 
-            HasMany::make('Photo ID', 'images', AssistanceRequestPhoto::class)
-                ->sortable()
-                ->displayUsing(function ($photo) {
-                    return $photo ? $photo->id : 'No Photo';
-                }),
+            Text::make('Address', 'location_address')->sortable(),
+            Text::make('Phone', 'location_phone')->sortable(),
+            Text::make('Email', 'location_email')->sortable(),
+            Text::make('Full Address', 'address')->sortable(),
+            Text::make('Location Code', 'location_code')->sortable()->onlyOnDetail(),
+            Text::make('Street Number', 'street_number')->sortable()->onlyOnDetail(),
+            Text::make('Street Name', 'street_name')->sortable()->onlyOnDetail(),
+            Text::make('City', 'city')->sortable(),
+            Text::make('State', 'state')->sortable(),
+            Text::make('State Short', 'state_short')->sortable()->onlyOnDetail(),
+            Text::make('Zip Code', 'post_code')->sortable()->onlyOnDetail(),
+            Text::make('Country', 'country')->sortable(),
+            Text::make('Country Short', 'country_short')->sortable()->onlyOnDetail(),
+            Boolean::make('Visible', 'visible')->sortable()->onlyOnDetail(),
 
 
-            Date::make('Date', 'created_at')
-            ->sortable(),
+            // Relation: A location has many opening times
+            HasMany::make('Opening Times', 'openingTimes', OpeningTime::class),
 
-
-            Text::make('Current Location')
+            Text::make('Location')
                 ->onlyOnDetail()
                 ->displayUsing(function () {
                     // Extensive logging
@@ -137,46 +111,6 @@ class AssistanceRequests extends Resource
                 </iframe>';
                 })
                 ->asHtml(),
-            ];
-    }
-
-    /**
-     * Get the cards available for the resource.
-     *
-     * @return array<int, \Laravel\Nova\Card>
-     */
-    public function cards(NovaRequest $request): array
-    {
-        return [];
-    }
-
-    /**
-     * Get the filters available for the resource.
-     *
-     * @return array<int, \Laravel\Nova\Filters\Filter>
-     */
-    public function filters(NovaRequest $request): array
-    {
-        return [];
-    }
-
-    /**
-     * Get the lenses available for the resource.
-     *
-     * @return array<int, \Laravel\Nova\Lenses\Lens>
-     */
-    public function lenses(NovaRequest $request): array
-    {
-        return [];
-    }
-
-    /**
-     * Get the actions available for the resource.
-     *
-     * @return array<int, \Laravel\Nova\Actions\Action>
-     */
-    public function actions(NovaRequest $request): array
-    {
-        return [];
+        ];
     }
 }
