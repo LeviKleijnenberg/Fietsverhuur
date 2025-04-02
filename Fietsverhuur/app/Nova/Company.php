@@ -7,6 +7,7 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Query\Builder;
 
 class Company extends Resource
 {
@@ -16,10 +17,7 @@ class Company extends Resource
      * @var class-string<\App\Models\Company>
      */
     public static $model = \App\Models\Company::class;
-    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
-    {
-        return $query->where('id', $request->user()->company_id);
-    }
+
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
@@ -97,4 +95,17 @@ class Company extends Resource
     {
         return 'companies';  // or use any slug of your choice
     }
+
+
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        // If the user is not an admin, filter by their associated company_id
+        if (!$request->user()->isAdmin()) {
+            return $query->where('id', $request->user()->company_id);
+        }
+
+        // If the user is an admin, show all companies
+        return $query;
+    }
+
 }

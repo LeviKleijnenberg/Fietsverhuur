@@ -53,4 +53,10 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
+
+
 }

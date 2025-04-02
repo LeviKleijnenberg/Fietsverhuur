@@ -11,25 +11,23 @@ class LocationPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function view(User $user, Location $location)
     {
-        return true;
+        return $user->isAdmin() || $location->company_id == $user->company_id;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Location $location): bool
+    public function viewAny(User $user)
     {
-        return $user->company_id === $location->company_id;
+        return $user->isAdmin() || $user->company_id !== null;
     }
+
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +35,7 @@ class LocationPolicy
      */
     public function update(User $user, Location $location): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +43,7 @@ class LocationPolicy
      */
     public function delete(User $user, Location $location): bool
     {
-        return false;
+        return true;
     }
 
     /**

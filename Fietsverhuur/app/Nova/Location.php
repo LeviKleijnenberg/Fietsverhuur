@@ -2,6 +2,7 @@
 namespace App\Nova;
 
 use App\Models\AssistanceRequest;
+use Illuminate\Http\Request;
 use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
@@ -17,10 +18,6 @@ class Location extends Resource
 
     public static $search = ['id', 'location_name'];
 
-    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
-    {
-        return $query->where('company_id', $request->user()->company_id);
-    }
     public function fields(NovaRequest $request): array
     {
         return [
@@ -124,7 +121,16 @@ class Location extends Resource
             HasMany::make('Assistance Requests', 'assistanceRequests', \App\Nova\AssistanceRequests::class)
 
         ];
-
-
     }
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        // If the user is not an admin, filter by their associated company_id
+        if (!$request->user()->isAdmin()) {
+            return $query->where('company_id', $request->user()->company_id);
+        }
+
+        // If the user is an admin, show all locations
+        return $query;
+    }
+
 }

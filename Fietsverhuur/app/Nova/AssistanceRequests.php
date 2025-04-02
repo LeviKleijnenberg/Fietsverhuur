@@ -25,12 +25,6 @@ class AssistanceRequests extends Resource
      */
     public static $model = \App\Models\AssistanceRequest::class;
 
-    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
-    {
-        return $query->whereHas('location', function ($q) use ($request) {
-            $q->where('company_id', $request->user()->company_id);
-        });
-    }
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
@@ -194,5 +188,18 @@ class AssistanceRequests extends Resource
     public function actions(NovaRequest $request): array
     {
         return [];
+    }
+
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        // If the user is not an admin, filter by the associated location's company_id
+        if (!$request->user()->isAdmin()) {
+            return $query->whereHas('location', function ($query) use ($request) {
+                $query->where('company_id', $request->user()->company_id);
+            });
+        }
+
+        // If the user is an admin, show all assistance requests
+        return $query;
     }
 }

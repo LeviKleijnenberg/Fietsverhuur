@@ -5,23 +5,29 @@ namespace App\Policies;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class CompanyPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public static function indexQuery(NovaRequest $request, $query)
     {
-        return true;
+        if (!$request->user()->isAdmin()) {
+            return $query->where('id', $request->user()->id);
+        }
+        return $query;
     }
+
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Company $company): bool
+    public function view(User $user, Company $company)
     {
-        return $user->company_id === $company->id;
+        // Admin can view any company, regular users can only view their own company's data
+        return $user->isAdmin() || $company->id == $user->company_id;
     }
 
     /**
@@ -29,7 +35,7 @@ class CompanyPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +43,7 @@ class CompanyPolicy
      */
     public function update(User $user, Company $company): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +51,7 @@ class CompanyPolicy
      */
     public function delete(User $user, Company $company): bool
     {
-        return false;
+        return true;
     }
 
     /**

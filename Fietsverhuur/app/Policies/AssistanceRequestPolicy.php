@@ -11,25 +11,23 @@ class AssistanceRequestPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function view(User $user, AssistanceRequest $assistanceRequest)
     {
-        return true;
+        return $user->isAdmin() || $assistanceRequest->location->company_id == $user->company_id;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, AssistanceRequest $assistanceRequest): bool
+    public function viewAny(User $user)
     {
-        return $user->company_id === $assistanceRequest->location->company_id;
+        return $user->isAdmin() || $user->company_id !== null;
     }
+
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +35,7 @@ class AssistanceRequestPolicy
      */
     public function update(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +43,7 @@ class AssistanceRequestPolicy
      */
     public function delete(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return false;
+        return true;
     }
 
     /**
