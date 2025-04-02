@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Company;
+use App\Models\OpeningTime;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use App\Models\Location;
@@ -39,20 +41,80 @@ class FetchLocations extends Command
                 foreach ($locations as $item) {
                     $acf = $item['acf']; // Extract "acf" field
 
-                    Location::updateOrCreate(
-                        ['name' => $acf['naam_locatie']], // Prevent duplicate entries
+                    Company::updateOrCreate(
+                        ['id' => $item['id']],  // Use API response ID
+                        ['name' => $acf['naam_locatie']]
+                    );
+
+
+                    // Fetch the company to get the correct ID
+                    $company = Company::where('id', $item['id'])->first();
+
+                    // Ensure company_id is correctly assigned before inserting the location
+                    if (empty($company->id)) {
+                        Log::error("Company ID is missing for location: " . $acf['naam_locatie']);
+                        continue; // Skip this iteration if no valid company_id
+                    }
+
+                    // Now, insert the location with the correct company_id
+                   $location = Location::updateOrCreate(
+                        ['location_code' => $acf['location_map']['place_id']], // Prevent duplicate entries
                         [
-                            'name' => $acf['naam_locatie'],
-                            'street' => $acf['straat_locatie'],
+
+                            'company_id' => $company->id, // ✅ Now it's correctly set
+                            'location_name' => $acf['naam_locatie'],
+                            'location_address' => $acf['location_map']['address'],
                             'postal_code' => $acf['postcode_locatie'],
-                            'city' => $acf['plaats_locatie'],
-                            'phone' => $acf['phone_locatie'],
-                            'email' => $acf['email_locatie'],
+                            'location_phone' => $acf['phone_locatie'],
+                            'location_email' => $acf['email_locatie'],
                             'address' => $acf['location_map']['address'] ?? null,
-                            'latitude' => $acf['location_map']['lat'] ?? null,
-                            'longitude' => $acf['location_map']['lng'] ?? null,
+                            'zoom' => $acf['location_map']['zoom'] ?? null,
+                            'street_name' => $acf['location_map']['street_name'],
+                            'street_number' => $acf['location_map']['street_number'],
+                            'city' => $acf['location_map']['city'],
+                            'state' => $acf['location_map']['state'],
+                            'state_short' => $acf['location_map']['state_short'],
+                            'post_code' => $acf['location_map']['post_code'],
+                            'country' => $acf['location_map']['country'],
+                            'country_short' => $acf['location_map']['country_short'],
+                            'visible' => ($acf['hide_on_overview'] ?? '') === 'hide' ? 0 : 1, // ✅ Convert "hide" to 0 and "show" to 1
+                            'reservation_url' => $acf['reserveer_url'] ?? null,
+                            'map' => json_encode([
+                                'latlng' => [
+                                    'lat' => (string) ($acf['location_map']['lat'] ?? ''),
+                                    'lng' => (string) ($acf['location_map']['lng'] ?? '')
+                                ]
+                            ]),
                         ]
                     );
+
+                    // Now that the location is created, update the company with the location_id
+                    $company->location_id = $location->id; // Add the location ID to the company
+                    $company->save(); // Save the company
+
+                    if (!empty($acf['openingstijden'])) {
+                        foreach ($acf['openingstijden'] as $openingTime) {
+                            Log::info('Opening Time Data:', [
+                                'day' => $openingTime['dag'],
+                                'start_time' => $openingTime['starttijd'] ?? 'MISSING',
+                                'end_time' => $openingTime['eindtijd'] ?? 'MISSING',
+                                'is_closed' => $openingTime['gesloten'] ?? 'MISSING',
+                            ]);
+
+                            OpeningTime::updateOrCreate(
+                                [
+                                    'location_id' => $location->id, // ✅ Associate with the correct location
+                                    'day' => $openingTime['dag'],
+                                ],
+                                [
+                                    'start_time' => !empty($openingTime['starttijd']) ? date("H:i:s", strtotime($openingTime['starttijd'])) : null,
+                                    'end_time' => !empty($openingTime['eindtijd']) ? date("H:i:s", strtotime($openingTime['eindtijd'])) : null,
+
+                                    'is_closed' => isset($openingTime['gesloten']) && $openingTime['gesloten'] ? 1 : 0,
+                                ]
+                            );
+                        }
+                    }
                 }
 
                 $this->info('Locations successfully fetched and saved.');

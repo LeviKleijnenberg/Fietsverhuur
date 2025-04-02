@@ -2,6 +2,8 @@
 
 namespace App\Nova;
 
+use App\Models\AssistanceRequest;
+use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\Date;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -23,6 +25,12 @@ class AssistanceRequests extends Resource
      */
     public static $model = \App\Models\AssistanceRequest::class;
 
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        return $query->whereHas('location', function ($q) use ($request) {
+            $q->where('company_id', $request->user()->company_id);
+        });
+    }
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
@@ -58,6 +66,9 @@ class AssistanceRequests extends Resource
                     return $location ? $location->location_address : 'No Address Available';
                 }),
 
+            Text::make('bike number')
+            ->sortable(),
+
             HasMany::make('Photo ID', 'images', AssistanceRequestPhoto::class)
                 ->sortable()
                 ->displayUsing(function ($photo) {
@@ -67,6 +78,10 @@ class AssistanceRequests extends Resource
 
             Date::make('Date', 'created_at')
             ->sortable(),
+
+            Boolean::make('handled')
+                ->sortable()
+                ->filterable(),
 
 
             Text::make('Current Location')
@@ -138,6 +153,7 @@ class AssistanceRequests extends Resource
                 })
                 ->asHtml(),
             ];
+
     }
 
     /**

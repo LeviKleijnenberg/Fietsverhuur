@@ -1,6 +1,8 @@
 <?php
 namespace App\Nova;
 
+use App\Models\AssistanceRequest;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\Boolean;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
@@ -15,14 +17,19 @@ class Location extends Resource
 
     public static $search = ['id', 'location_name'];
 
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        return $query->where('company_id', $request->user()->company_id);
+    }
     public function fields(NovaRequest $request): array
     {
         return [
             ID::make()->sortable(),
 
-            Text::make('Name', 'location_name')
+            BelongsTo::make('Company', 'company', \App\Nova\Company::class)
                 ->sortable()
-                ->required(),
+                ->displayUsing(fn ($company) => $company->name) // Display the company name instead of the ID
+                ->searchable(),
 
             Text::make('Address', 'location_address')->sortable(),
             Text::make('Phone', 'location_phone')->sortable(),
@@ -41,7 +48,9 @@ class Location extends Resource
 
 
             // Relation: A location has many opening times
-            HasMany::make('Opening Times', 'openingTimes', OpeningTime::class),
+            HasMany::make('Opening Times', 'openingTimes', OpeningTime::class)
+                ->sortable(),
+
 
             Text::make('Location')
                 ->onlyOnDetail()
@@ -111,6 +120,11 @@ class Location extends Resource
                 </iframe>';
                 })
                 ->asHtml(),
+
+            HasMany::make('Assistance Requests', 'assistanceRequests', \App\Nova\AssistanceRequests::class)
+
         ];
+
+
     }
 }

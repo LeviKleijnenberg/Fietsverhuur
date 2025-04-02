@@ -47,9 +47,6 @@ class Bikes extends Resource
             ->sortable()
             ->showWhenPeeking(),
 
-            Boolean::make('needs_maintenance')
-                ->sortable()
-                ->showWhenPeeking(),
         ];
     }
 

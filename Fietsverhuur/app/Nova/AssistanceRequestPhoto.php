@@ -19,6 +19,7 @@ class AssistanceRequestPhoto extends Resource
      * @var class-string<\App\Models\AssistanceRequestPhoto>
      */
     public static $model = \App\Models\AssistanceRequestPhoto::class;
+    public static $displayInNavigation = false;
 
     /**
      * The single value that should be used to represent the resource when being displayed.

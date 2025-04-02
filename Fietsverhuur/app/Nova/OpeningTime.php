@@ -15,6 +15,10 @@ class OpeningTime extends Resource
 
     public static $search = ['id', 'day'];
 
+    public static $displayInNavigation = false;
+
+
+
     public function fields(NovaRequest $request): array
     {
         return [

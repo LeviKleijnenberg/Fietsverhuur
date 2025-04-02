@@ -10,5 +10,12 @@ class Company extends Model
     protected $fillable = [
         'name',
         'id',
+        'created_at',
+        'updated_at',
     ];
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
 }

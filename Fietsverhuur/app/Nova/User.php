@@ -21,7 +21,10 @@ class User extends Resource
      * @var class-string<\App\Models\User>
      */
     public static $model = \App\Models\User::class;
-
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        return $query->where('id', $request->user()->id); // Only show the logged-in user
+    }
     /**
      * The single value that should be used to represent the resource when being displayed.
      *

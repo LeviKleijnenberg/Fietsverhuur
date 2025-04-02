@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -15,7 +16,10 @@ class Company extends Resource
      * @var class-string<\App\Models\Company>
      */
     public static $model = \App\Models\Company::class;
-
+    public static function indexQuery(NovaRequest $request, $query): \Illuminate\Contracts\Database\Eloquent\Builder
+    {
+        return $query->where('id', $request->user()->company_id);
+    }
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
@@ -43,6 +47,9 @@ class Company extends Resource
             ID::make()->sortable(),
 
             Text::make('Name')->sortable(),
+
+            BelongsTo::make('location')
+                ->displayUsing(fn ($location) => $location->address) // Display the company name instead of the ID
         ];
     }
 
